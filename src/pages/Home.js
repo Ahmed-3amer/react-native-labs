@@ -12,6 +12,7 @@ const STORAGE_KEY = "@todos";
 const Home = () => {
   const { navigate } = useNavigation();
   const [todos, setTodos] = useState([]);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const loadTodos = async () => {
@@ -24,7 +25,6 @@ const Home = () => {
         console.log("Error loading todos:", error);
       }
     };
-
     loadTodos();
   }, []);
 
@@ -36,12 +36,11 @@ const Home = () => {
         console.log("Error saving todos:", error);
       }
     };
-
     saveTodos();
   }, [todos]);
 
   const handleAddTodo = (todo) => {
-    setTodos((prevTodos) => [...prevTodos, todo]);
+    setTodos((prev) => [...prev, todo]);
   };
 
   const handleDelete = (id) => {
@@ -56,6 +55,12 @@ const Home = () => {
     );
   };
 
+  const filteredTodos = todos.filter((todo) => {
+    if (filter === "completed") return todo.completed;
+    if (filter === "in-progress") return !todo.completed;
+    return true;
+  });
+
   return (
     <View style={styles.container}>
       <Text style={{ fontSize: 35, fontWeight: "bold", marginBottom: 19 }}>
@@ -67,25 +72,33 @@ const Home = () => {
       <View style={styles.dividerLine} />
 
       <View style={styles.filterContainer}>
-        <TouchableOpacity style={styles.filterBtn} activeOpacity={0.7}>
-          <Text style={styles.filterText}>All</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.filterBtn}
-          activeOpacity={0.7}
-          onPress={() => navigate(PATHS.COMPLETED_TASKS)}
+          onPress={() => setFilter("all")}
+        >
+          <Text style={styles.filterText}>All</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.filterBtn}
+          onPress={() => setFilter("completed")}
         >
           <Text style={styles.filterText}>Completed</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.filterBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.filterBtn}
+          onPress={() => setFilter("in-progress")}
+        >
           <Text style={styles.filterText}>In Progress</Text>
         </TouchableOpacity>
       </View>
 
-      {todos.length > 0 && (
-        <Todos todos={todos} onDelete={handleDelete} onToggle={handleToggle} />
+      {filteredTodos.length > 0 && (
+        <Todos
+          todos={filteredTodos}
+          onDelete={handleDelete}
+          onToggle={handleToggle}
+          onPressItem={(todo) => navigate(PATHS.DETAILS, { todo })}
+        />
       )}
     </View>
   );

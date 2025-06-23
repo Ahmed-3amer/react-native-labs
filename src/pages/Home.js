@@ -6,11 +6,15 @@ import Todos from "../components/Todos";
 import { useNavigation } from "@react-navigation/native";
 import { PATHS } from "../routes/Router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch } from "react-redux";
+import { setTodos as setTodosInRedux } from "../Redux/todosSlice";
 
 const STORAGE_KEY = "@todos";
 
 const Home = () => {
   const { navigate } = useNavigation();
+  const dispatch = useDispatch();
+
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState("all");
 
@@ -18,9 +22,9 @@ const Home = () => {
     const loadTodos = async () => {
       try {
         const storedTodos = await AsyncStorage.getItem(STORAGE_KEY);
-        if (storedTodos) {
-          setTodos(JSON.parse(storedTodos));
-        }
+        const parsed = storedTodos ? JSON.parse(storedTodos) : [];
+        setTodos(parsed); // محلي
+        dispatch(setTodosInRedux(parsed)); // في redux
       } catch (error) {
         console.log("Error loading todos:", error);
       }
@@ -32,6 +36,7 @@ const Home = () => {
     const saveTodos = async () => {
       try {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+        dispatch(setTodosInRedux(todos)); // نحدث redux برضو
       } catch (error) {
         console.log("Error saving todos:", error);
       }
